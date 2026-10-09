@@ -1,5 +1,4 @@
-"""
-Dashboard voor Case 3. Starten: python -m streamlit run app.py.
+"""Dashboard voor Case 3. Starten: python -m streamlit run app.py.
 
 Leesvolgorde: vraag → context → onderzoek → voorspelling → conclusie.
 Data.py bevat de berekeningen. Hier kiezen we vooral wat op het scherm staat.
@@ -16,7 +15,8 @@ from data import (maak_alle_data, maak_weektabel, vat_vertraging_samen,
                   maak_voorspelling, toets_voorspelling, maak_tijdtrend,
                   maak_weervergelijking, controle_extremen, WINDSTOOT_GRENS)
 
-st.set_page_config(page_title="Vluchten Zürich", layout="wide")
+st.set_page_config(page_title="Vluchten Zürich", page_icon="✈", layout="wide")
+
 
 # ---------- 1. DATA LADEN ----------
 # @st.cache_data onthoudt de uitkomst. Zo worden de CSV's niet bij iedere klik herlezen.
@@ -30,15 +30,18 @@ def laad_data():
                        "Is_late", "Is_extreme", "Delay_minutes"]]
     return flights, daily, destinations, log
 
+
 def toon_grafiek(figuur):
     """Laat een Plotly-grafiek de beschikbare schermbreedte gebruiken."""
     st.plotly_chart(figuur, width="stretch")
+
 
 def hoogste_rij(tabel, kolom):
     """Zoek de rij met het hoogste percentage, aantal of verschil."""
     # We gebruiken deze stap op vier plekken. sort_values zet de hoogste waarde vooraan.
     # iloc[0] kiest de eerste rij van de gesorteerde tabel; de tabel moet minstens één rij hebben.
     return tabel.sort_values(kolom, ascending=False).iloc[0]
+
 
 def toon_weekgrafiek(weken, jaar, maanden, maximum):
     """Toon alleen het gekozen jaar en maandbereik, met dezelfde schaal voor beide jaren."""
@@ -54,6 +57,7 @@ def toon_weekgrafiek(weken, jaar, maanden, maximum):
     figuur.update_traces(connectgaps=False)  # een ontbrekende waarde blijft een zichtbaar gat
     toon_grafiek(figuur)
 
+
 def maak_kaart(kaart, gebied, lijnen_tonen, hoogste_aantal):
     """Teken vliegvelden en, als dat is aangevinkt, hun verbinding met Zürich."""
     # Deze coördinaten komen uit airports-extended.csv, rij met ICAO-code LSZH.
@@ -64,6 +68,7 @@ def maak_kaart(kaart, gebied, lijnen_tonen, hoogste_aantal):
     if gebied == "Wereld":
         middelpunt = {"lat": 20, "lon": 0}
         zoom = 0.5
+
     # log10 maakt iedere factor 10 in aantallen één kleurstap: 1, 10, 100, 1.000.
     # Daardoor blijven vliegvelden met weinig vluchten ook zichtbaar. De legenda toont aantallen.
     kaart = kaart.copy()
@@ -76,6 +81,7 @@ def maak_kaart(kaart, gebied, lijnen_tonen, hoogste_aantal):
     figuur.update_traces(marker_size=9)
     figuur.update_layout(coloraxis_colorbar={"title": "Vluchten", "tickvals": [0, 1, 2, 3, 4],
                                              "ticktext": ["1", "10", "100", "1.000", "10.000"]})
+
     if lijnen_tonen:
         breedtes = []
         lengtes = []
@@ -94,11 +100,13 @@ def maak_kaart(kaart, gebied, lijnen_tonen, hoogste_aantal):
                                    marker={"size": 13, "color": "#c43830"}, name="Zürich"))
     return figuur
 
+
 flights, daily, destinations, log = laad_data()
 # [voorwaarde] kiest rijen. LSV == S betekent vertrek; de aankomsten blijven in flights.
 vertrekken = flights[flights["LSV"] == "S"]
 weken = maak_weektabel(flights)
 test = maak_voorspelling(vertrekken)
+
 
 # ---------- 2. EERSTE BEELD ----------
 # De vraag en kerncijfers staan bovenaan. Het antwoord krijgt een eigen plek in tab 4.
@@ -135,9 +143,11 @@ uurtests = {2019: toets_voorspelling(test, 2019), 2020: toets_voorspelling(test,
 # uurtests[2019] haalt de tabel van 2019 op. mean() middelt de afwijkingen per uur.
 fout_2019 = uurtests[2019]["Afwijking (procentpunt)"].mean()
 fout_2020 = uurtests[2020]["Afwijking (procentpunt)"].mean()
+
 context_tab, onderzoek_tab, voorspelling_tab, conclusie_tab = st.tabs(
     ["1. Context", "2. Vertraging onderzoeken", "3. Voorspelling toetsen",
      "4. Conclusie en verantwoording"])
+
 
 # ---------- 3. CONTEXT: WAAROM VERGELIJKEN WE DE JAREN APART? ----------
 with context_tab:
@@ -158,6 +168,7 @@ with context_tab:
                "maakt de aantallen vergelijkbaar. Aankomsten én vertrekken; weken eindigen op zondag. "
                "De eerste en laatste week kunnen korter zijn. De tooltip toont het aantal dagen. "
                "Ontbrekende brondagen worden niet doorverbonden.")
+
     # De kaart hoort bij de context: zij laat zien over welke vliegveldverbindingen we spreken.
     st.subheader("Met welke vliegvelden is Zürich verbonden?")
     links, rechts = st.columns(2)
@@ -182,6 +193,7 @@ with context_tab:
                "Beweeg over een stip voor de naam en het aantal vluchten.")
     st.caption("De volgende tab zoomt in op vertrekvertraging: eerst het tijdstip, daarna het weer.")
 
+
 # ---------- 4. ONDERZOEK: EERST BESCHRIJVEN WAT WE ZIEN ----------
 with onderzoek_tab:
     st.subheader("Op welke geplande vertrekuren zien we meer vertraging?")
@@ -198,6 +210,7 @@ with onderzoek_tab:
              f"**{int(piek_2020['Planned_hour']):02d}:00** ({piek_2020['Late_percent']:.1f}%).")
     st.caption("Alleen uren met minstens 100 vertrekken in het betreffende jaar worden getoond. "
                "Dat beperkt de invloed van zeer kleine groepen; het bewijst geen oorzaak van vertraging.")
+
     # De weeranalyse staat direct in beeld: de koppeling van bronnen is een kernonderdeel van de opdracht.
     st.subheader("Zien we meer vertrekvertraging op dagen met hogere windstoten?")
     figuur = px.bar(weer, x="Windstoten", y="Te laat (%)", color="Jaar", barmode="group", hover_data=["Dagen"],
@@ -221,6 +234,7 @@ with onderzoek_tab:
     st.caption("Nu we het uurpatroon hebben gezien, toetsen we in de volgende tab of eerdere "
                "uurpercentages ook bruikbaar zijn voor latere vertrekken.")
 
+
 # ---------- 5. VOORSPELLING: TOETSEN OP LATERE DATA ----------
 with voorspelling_tab:
     st.subheader("Werken eerdere percentages ook voor latere vertrekken?")
@@ -243,6 +257,7 @@ with voorspelling_tab:
     st.caption("Leerdata: januari–oktober 2019. Test: november–december 2019 of heel 2020. "
                "Ieder vertrekuur telt even zwaar in de gemiddelde afwijking; aantallen staan in de tooltip. "
                "Aanname: het patroon per uur blijft gelijk. Seizoen, drukte en corona kunnen dit veranderen.")
+
     # De tijdtrend hoort bij de rubric; extra details verschijnen pas na een klik.
     with st.expander("Tijdtrend: vier weken vooruit voorspellen"):
         trend, stap = maak_tijdtrend(vertrekken)
@@ -259,6 +274,7 @@ with voorspelling_tab:
                    "Die stap tellen we vanaf de laatste leerweek steeds op. Leerweken eindigen op "
                    "13 oktober–1 december 2019; testweken op 8–29 december. "
                    "De decemberstijging wordt gemist. De aanname geldt hoogstens kort; feestdagen en corona kunnen haar breken.")
+
 
 # Alles in dit with-blok verschijnt alleen in het vierde werkblad.
 with conclusie_tab:
@@ -284,6 +300,8 @@ with conclusie_tab:
     st.caption("Deze conclusie gaat over de historische gegevens van 2019–2020. "
                "De jaren verschillen in verkeersomvang en aandeel vertraging. De tijdtrend mist de decemberstijging; "
                "seizoen, feestdagen en veranderingen zoals corona kunnen voorspellingen breken.")
+
+
     # ---------- 7. VERANTWOORDING ----------
     # Deze informatie hoort bij de beoordeling, maar hoeft niet steeds tegelijk in beeld te staan.
     st.divider()
