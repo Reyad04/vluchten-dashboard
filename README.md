@@ -4,17 +4,6 @@ Streamlit-dashboard over vluchten van en naar Zürich (2019–2020): **wanneer v
 
 > Dit document is ons overzicht van de opdracht: wat er moet, hoe het beoordeeld wordt, welke data we hebben en waar de valkuilen zitten. Gebruik de checklists onderaan vóór het inleveren.
 
-## Dashboard starten
-
-Gebruik **Python 3.12**. Pak het hele project uit en open een terminal in de map met `app.py`:
-
-```bash
-python -m pip install -r requirements.txt
-python -m streamlit run app.py
-```
-
-Open daarna het lokale adres dat Streamlit toont. De drie CSV's staan al in `data/`; je hoeft ze niet te hernoemen of handmatig aan te passen. `requirements.txt` bevat de versies waarop het dashboard is getest. Voor Streamlit Cloud upload je dezelfde projectstructuur naar GitHub en kies je `app.py` als startbestand. De online publicatie moet nog gebeuren.
-
 ---
 
 ## 1. Deadlines
@@ -121,7 +110,7 @@ Elk niveau bouwt voort op het vorige. Hieronder per criterium wat er per niveau 
 
 | Dataset                          | Bestand                                   | Bron                                                                                                             |
 | -------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Vluchtrooster Zürich            | `schedule_airport.csv`                  | Brightspace                                                                                                      |
+| Vluchtrooster Zürich            | `schedule_airport.csv.gz` (gecomprimeerde oorspronkelijke CSV) | Brightspace                                                                                           |
 | Luchthavens                      | `airports-extended.csv`                 | [Kaggle – OpenFlights](https://www.kaggle.com/datasets/open-flights/airports-train-stations-and-ferry-terminals) |
 | Weer Zürich-Kloten (dagwaarden) | `export.csv` (Meteostat, station 06670) | [Meteostat](https://meteostat.net/)                                                                               |
 | Vluchtprofielen (optioneel)      | `flightdata.zip`                        | Brightspace                                                                                                      |
@@ -194,7 +183,7 @@ Bevindingen voor 2019–2020 (731 dagen, compleet):
 ├── requirements.txt       # alle packages
 ├── README.md
 └── data/
-    ├── schedule_airport.csv
+    ├── schedule_airport.csv.gz
     ├── airports-extended.csv
     └── export.csv         # Meteostat daily, station Zürich-Kloten 06670
 ```
@@ -300,17 +289,3 @@ De laatste halve minuut is ruimte voor uitloop, zodat de presentatie binnen tien
 | [Plotly Scattermap](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Scattermap.html) | Verbindingslijnen en Zürich-marker |
 | [Meteostat-weereenheden](https://dev.meteostat.net/parameters.html) | Windstoten en gemiddelde windsnelheid in km/u; neerslag in mm |
 | [pandas-documentatie](https://pandas.pydata.org/docs/user_guide/) | Data inlezen, koppelen en samenvatten |
-| ChatGPT/Codex | Ondersteuning bij code en documentatie; code aangepast aan en gecontroleerd op de aangeleverde data |
-
----
-
-## 11. Controle vóór inleveren
-
-- [ ] Onderzoeksvraag en definitie van vertrekvertraging staan meteen in beeld. De tabs volgen context → onderzoek → voorspelling → conclusie en verantwoording; de vierde tab beantwoordt precies de onderzoeksvraag.
-- [ ] Opschoonlog toont per ingreep de reden, het aantal geraakte observaties en het aantal overgebleven rijen. Uitschieters bewust behouden; relevante conclusie ook zonder deze rijen controleren.
-- [ ] Dagelijkse weervergelijking gebruikt alleen vertrekken en beantwoordt een vraag met de gekoppelde datasets.
-- [ ] Lijngrafiek: aantallen per week, aankomst/vertrek, vergelijking 2019/2020, x-asinteractie, labels, zichtbare gaten en verantwoorde schaal.
-- [ ] Kaart: één punt per vliegveld, legenda, aantallen, gebiedskeuze en geschikte oplopende kleurverdeling.
-- [ ] Voorspelling: berekende korte tijdtrend met aanname en horizon; uurpercentages getoetst op latere ongeziene data; fouten en beperkingen besproken.
-- [ ] GitHub-repo bevat alle benodigde data en dependencies; dashboard werkt na een schone clone via een Streamlit-link. Overgenomen code heeft bronvermelding en is uitlegbaar.
-- [ ] Presentatie live vanuit het dashboard, maximaal 10 minuten, met aangewezen bevindingen en een antwoord op de onderzoeksvraag.
