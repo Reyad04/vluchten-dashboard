@@ -2,7 +2,7 @@
 Data voorbereiden voor het dashboard over vluchten en vertraging op Zürich Airport.
 
 Wat doet dit script?
-    1. Vluchten inlezen en opschonen (schedule_airport.csv)
+    1. Vluchten inlezen en opschonen (schedule_airport.csv.gz)
     2. Per vlucht de vertraging uitrekenen
     3. Weer inlezen en opschonen (export.csv)
     4. Luchthavens inlezen (airports-extended.csv) en koppelen aan de bestemmingen
@@ -70,8 +70,9 @@ def noteer(log, stap, uitleg, aantal_rijen_geraakt, rijen_over):
 def laad_vluchten(pad, log):
     """Lees vluchten, bereken vertraging en leg de opschoonkeuzes vast."""
     # Het bestand begint met een onzichtbaar teken (BOM). Met utf-8-sig lezen we dat goed in.
+    # .gz is dezelfde CSV, maar kleiner opgeslagen. pandas pakt haar automatisch uit bij het lezen.
     flights = pd.read_csv(pad, encoding="utf-8-sig")
-    noteer(log, "Inlezen", "schedule_airport.csv ingelezen", 0, len(flights))
+    noteer(log, "Inlezen", "schedule_airport.csv.gz ingelezen", 0, len(flights))
     # Dubbele rijen: rijen die in alle kolommen precies hetzelfde zijn.
     aantal_voor = len(flights)
     flights = flights.drop_duplicates()
@@ -283,7 +284,7 @@ def maak_bestemmingstabel(flights):
 # ALLES IN EEN KEER (deze functie roep je aan vanuit app.py)
 # ---------------------------------------------------------------------------
 
-def maak_alle_data(schedule_pad=DATA_MAP / "schedule_airport.csv",
+def maak_alle_data(schedule_pad=DATA_MAP / "schedule_airport.csv.gz",
                    weer_pad=DATA_MAP / "export.csv",
                    luchthavens_pad=DATA_MAP / "airports-extended.csv"):
     """Doorloop de voorbereiding en geef flights, daily, destinations en log terug."""
@@ -323,6 +324,7 @@ def controle_extremen(flights):
     })
     return tabel.round(2)
 
+
 def maak_weektabel(flights):
     """Tel aankomsten en vertrekken per week; ontbrekende dagen veroorzaken een gat."""
     # unstack zet aankomst en vertrek naast elkaar in kolommen.
@@ -352,6 +354,7 @@ def maak_weektabel(flights):
         tabellen.append(weken)
     return pd.concat(tabellen).rename_axis("Date").reset_index()
 
+
 def vat_vertraging_samen(vertrekken, kolommen):
     """True telt als 1: de gemiddelde True-waarde is dus het aandeel te late vluchten."""
     tabel = vertrekken.groupby(kolommen, observed=True).agg(
@@ -359,8 +362,10 @@ def vat_vertraging_samen(vertrekken, kolommen):
     tabel["Late_percent"] = tabel["Share_late"] * 100
     return tabel.reset_index()
 
+
 def maak_voorspelling(vertrekken):
     """Voorspel het percentage late vertrekken per uur met eerdere percentages.
+
     Voorbeeld: waren 30 van 100 vertrekken om 10:00 laat, dan is de schatting 30%.
     Dit voorspelt een kans voor een groep, niet of één specifieke vlucht zeker laat is.
     Alleen januari–oktober 2019 wordt gebruikt om de percentages te berekenen.
@@ -374,6 +379,7 @@ def maak_voorspelling(vertrekken):
     test = vertrekken[vertrekken["Date"] >= "2019-11-01"].copy()
     test["Voorspeld (%)"] = test["Planned_hour"].map(percentages).fillna(gemiddelde)
     return test
+
 
 def toets_voorspelling(test, jaar):
     """Vergelijk eerdere uurpercentages met de werkelijke percentages in een later jaar."""
@@ -391,6 +397,7 @@ def toets_voorspelling(test, jaar):
     tabel["Afwijking"] = (tabel["Voorspeld"] - tabel["Werkelijk"]).abs()
     return tabel.rename(columns={"Planned_hour": "Uur", "Werkelijk": "Werkelijk (%)",
                                  "Voorspeld": "Voorspeld (%)", "Afwijking": "Afwijking (procentpunt)"})
+
 
 def maak_tijdtrend(vertrekken):
     """Bereken een eenvoudige wekelijkse verandering en trek die vier weken door.
@@ -419,6 +426,7 @@ def maak_tijdtrend(vertrekken):
     tabel["Periode"] = "Leerweken"
     tabel.loc[8:, "Periode"] = "Test"
     return tabel, stap_per_week  # testwaarden hebben niet meegedaan aan de berekening
+
 
 def maak_weervergelijking(daily):
     """Vergelijk dagen op hun hoogste windstoot; onbekende waarden blijven een eigen groep."""
