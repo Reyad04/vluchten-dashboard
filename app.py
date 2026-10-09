@@ -15,7 +15,7 @@ from data import (maak_alle_data, maak_weektabel, vat_vertraging_samen,
                   maak_voorspelling, toets_voorspelling, maak_tijdtrend,
                   maak_weervergelijking, controle_extremen, WINDSTOOT_GRENS)
 
-st.set_page_config(page_title="Vluchten Zürich", page_icon="✈", layout="wide")
+st.set_page_config(page_title="Vluchten Zürich", layout="wide")
 
 
 # ---------- 1. DATA LADEN ----------
